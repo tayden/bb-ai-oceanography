@@ -1,0 +1,302 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <title>Oceanography Machine Learning Landscape</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel&display=swap" rel="stylesheet">
+    
+       
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" />
+    <script src="https://unpkg.com/deck.gl@latest/dist.min.js"></script>
+    
+    <style>
+        body {
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          background: #000000;
+        }
+
+        #deck-container {
+          width: 100vw;
+          height: 100vh;
+        }
+
+        #deck-container canvas {
+          z-index: 1;
+          background: #000000;
+        }
+
+        .deck-tooltip {
+            
+            font-size: 0.8em;
+            font-family: Cinzel;
+            color: #ffffff !important;
+            background-color: #000000aa !important;
+            border-radius: 12px;
+            box-shadow: 2px 3px 10px #00000044;
+            max-width: 25%;
+        }
+        
+        #loading {
+            width: 100%;
+            height: 100%;
+            top: 0px;
+            left: 0px;
+            position: absolute;
+            display: block; 
+            z-index: 99
+        }
+
+        #loading-image {
+            position: absolute;
+            top: 45%;
+            left: 47.5%;
+            z-index: 100
+        }
+        
+        #title-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            margin: 16px;
+            padding: 12px;
+            border-radius: 16px;
+            line-height: 0.95;
+            z-index: 2;
+            font-family: Cinzel;
+            color: #ffffff;
+            background: #000000aa;
+            box-shadow: 2px 3px 10px #00000044;
+        }
+        
+        
+        #search-container{
+            position: absolute;
+            left: -16px;
+            margin: 16px;
+            padding: 12px;
+            border-radius: 16px;
+            z-index: 2;
+            font-family: Cinzel;
+            color: #ffffff;
+            background: #000000aa;
+            width: fit-content;
+            box-shadow: 2px 3px 10px #00000044;
+        }
+        input {
+            margin: 2px;
+            padding: 4px;
+            border-radius: 8px;
+            color: #ffffff;
+            background: #000000dd;
+            border: 1px solid 222222ff;
+            transition: 0.5s;
+            outline: none;
+        }
+        input:focus {
+          border: 2px solid #555;
+        }
+        
+        
+    </style>
+  </head>
+  <body>
+    <div id="loading">
+        <img id="loading-image" src="https://i.gifer.com/ZKZg.gif" alt="Loading..." width="5%"/>
+    </div>
+    
+    <div id="title-container">
+        <span style="font-family:Cinzel;font-size:36pt;color:#ffffff">
+            Oceanography Machine Learning Landscape
+        </span><br/>
+        <span style="font-family:Cinzel;font-size:18pt;color:#777777">
+            A data map of papers using Machine Learning for Oceanographic research
+        </span>
+        
+        <div id="search-container">
+            <input autocomplete="off" type="search" id="search" placeholder="🔍">
+        </div>
+        
+    </div>
+    
+    
+    <div id="deck-container">
+    </div>
+    
+  </body>
+  <script type="module">
+    import { ArrowLoader } from 'https://cdn.jsdelivr.net/npm/@loaders.gl/arrow@4.1.0-alpha.10/+esm'
+    import { JSONLoader } from 'https://cdn.jsdelivr.net/npm/@loaders.gl/json@4.0.5/+esm'
+    
+    import { ZipLoader } from 'https://cdn.jsdelivr.net/npm/@loaders.gl/zip@4.1.0-alpha.10/+esm'
+    import { CSVLoader } from 'https://cdn.jsdelivr.net/npm/@loaders.gl/csv@4.1.0-alpha.10/+esm'
+    
+
+    
+    const pointData = await loaders.load("./docs/bb-ai-1_point_df.arrow", ArrowLoader);
+    const unzippedHoverData = await loaders.load("./docs/bb-ai-1_point_hover_data.zip", ZipLoader);
+    const hoverData = await loaders.parse(unzippedHoverData["point_hover_data.arrow"], ArrowLoader);
+    const unzippedLabelData = await loaders.load("./docs/bb-ai-1_label_data.zip", ZipLoader);
+    const labelData = await loaders.parse(unzippedLabelData["label_data.json"], JSONLoader);
+    
+    
+    const DATA = {src: pointData.data, length: pointData.data.x.length}
+
+    const container = document.getElementById('deck-container');
+    const pointLayer = new deck.ScatterplotLayer({
+        id: 'dataPointLayer',
+        data: DATA,
+        getPosition: (object, {index, data}) => {
+            return [data.src.x[index], data.src.y[index]];
+        },
+        
+        getRadius: 0.46652111542950875,
+        
+        getFillColor: (object, {index, data}) => {
+            return [
+                data.src.r[index], 
+                data.src.g[index], 
+                data.src.b[index],
+                180
+            ]
+        },
+        getLineColor: (object, {index, data}) => {
+            return [
+                data.src.r[index], 
+                data.src.g[index], 
+                data.src.b[index],
+                32
+            ]
+        },       
+        getLineColor: [5, 5, 5, 128],
+        getLineWidth: 0.001,
+        highlightColor: [170, 0, 0, 187], 
+        lineWidthMaxPixels: 8,
+        lineWidthMinPixels: 0.1,
+        radiusMaxPixels: 24, 
+        radiusMinPixels: 0.01,
+        radiusUnits: "common", 
+        lineWidthUnits: "common", 
+        autoHighlight: true,
+        pickable: true, 
+        stroked: true
+    });
+    const labelLayer = new deck.TextLayer({
+        id: "textLabelLayer",
+        data: labelData,
+        pickable: false,
+        getPosition: d => [d.x, d.y],
+        getText: d => d.label,
+        getColor: [255, 255, 255, 255],
+        getSize: d => d.size,
+        sizeScale: 1,
+        sizeMinPixels: 12,
+        sizeMaxPixels: 36,
+        outlineWidth: 8,
+        outlineColor: [17, 17, 17, 221],
+        getBackgroundColor: [0, 0, 0, 64],
+        getBackgroundPadding: [15, 15, 15, 15],
+        background: true,
+        characterSet: "auto",
+        fontFamily: "Cinzel",
+        lineHeight: 0.95,
+        fontSettings: {"sdf": true},
+        getTextAnchor: "middle",
+        getAlignmentBaseline: "center",
+        lineHeight: 0.95,
+        elevation: 100,
+        // CollideExtension options
+        collisionEnabled: true,
+        getCollisionPriority: d => d.size,
+        collisionTestProps: {
+          sizeScale: 3,
+          sizeMaxPixels: 36 * 2,
+          sizeMinPixels: 12 * 2
+        },
+        extensions: [new deck.CollisionFilterExtension()],
+    });
+    
+    const boundaryLayer = new deck.PolygonLayer({
+        data: labelData,
+        stroked: true,
+        filled: false,
+        getLineColor: d => [d.r, d.g, d.b, d.a],
+        getPolygon: d => d.polygon,
+        lineWidthUnits: "common",
+        getLineWidth: d => d.size * d.size,
+        lineWidthScale: 1 * 5e-5,
+        lineJointRounded: true,
+        lineWidthMaxPixels: 4,
+        lineWidthMinPixels: 0.0,
+    });
+    
+
+    const deckgl = new deck.DeckGL({
+      container: container,
+      initialViewState: {
+        latitude: 2.627113,
+        longitude: 5.3597164,
+        zoom: 5.338328586940042
+      },
+      controller: true,
+      
+      layers: [pointLayer, boundaryLayer, labelLayer],
+      
+      
+      onClick: ({index}, event) => window.open(`http://google.com/search?q="${hoverData.data.hover_text[index]}"`),
+      
+      getTooltip: ({index}) => hoverData.data.hover_text[index]
+    });
+    
+    document.getElementById("loading").style.display = "none";
+        
+    
+        function selectPoints(item, conditional) {
+        var layerId;
+        if (item) {
+            for (var i = 0; i < DATA.length; i++) {
+                if (conditional(i)) {
+                    DATA.src.selected[i] = 1;
+                } else {
+                    DATA.src.selected[i] = 0;
+                }
+            }
+            layerId = 'selectedPointLayer' + item;
+        } else {
+            for (var i = 0; i < DATA.length; i++) {
+                DATA.src.selected[i] = 1;
+            }
+            layerId = 'dataPointLayer';
+        }
+        const selectedPointLayer = pointLayer.clone(
+            {
+                id: layerId,
+                data: DATA,
+                getFilterValue: (object, {index, data}) => data.src.selected[index],
+                filterRange: [1, 2],
+                extensions: [new deck.DataFilterExtension({filterSize: 1})]
+            }
+        );
+        deckgl.setProps(
+            {layers: 
+                [selectedPointLayer].concat(deckgl.props.layers.slice(1,))
+            }
+        );
+    }
+    
+    const search = document.getElementById("search");
+    search.addEventListener("input", (event) => {
+            const search_term = event.target.value.toLowerCase();
+            selectPoints(search_term, (i) => hoverData.data.hover_text[i].toLowerCase().includes(search_term));
+        }
+    );
+    
+    
+    </script>
+</html>
