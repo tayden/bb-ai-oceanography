@@ -1,6 +1,6 @@
 # bb-ai-oceanography
 
-## [Interactive Visualization Here](https://taylordenouden.com/bb-ai-oceanography/)
+## [Interactive Visualization Here](https://tayden.github.io/bb-ai-oceanography/)
 
 This repo contains the code for generating clusters and labels for papers relating to ML use in Oceanography.
 
